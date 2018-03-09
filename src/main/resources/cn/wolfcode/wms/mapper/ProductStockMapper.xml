@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wms.mapper.ProductStockMapper">
+    <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.ProductStock">
+        <id column="id" property="id"/>
+        <result column="price" property="price"/>
+        <result column="storeNumber" property="storeNumber"/>
+        <result column="amount" property="amount"/>
+        <association property="depot" javaType="cn.wolfcode.wms.domain.Depot">
+            <id column="d_id" property="id"/>
+            <result column="d_name" property="name"/>
+        </association>
+        <association property="product" javaType="cn.wolfcode.wms.domain.Product" columnPrefix="pro_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="brandName" property="brandName"/>
+            <result column="brandId" property="brandId"/>
+            <result column="sn" property="sn"/>
+        </association>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        DELETE FROM `productstock`
+        WHERE id = #{id}
+    </delete>
+    <insert id="insert" parameterType="cn.wolfcode.wms.domain.ProductStock" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `productstock` (price, storeNumber, amount, product_id, depot_id)
+        VALUES (#{price}, #{storeNumber}, #{amount}, #{product.id}, #{depot.id})
+    </insert>
+    <update id="updateByPrimaryKey">
+        UPDATE `productstock`
+        SET storeNumber = #{storeNumber},
+            amount      = #{amount}
+        WHERE id = #{id}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        SELECT
+            id,
+            price,
+            storeNumber,
+            amount,
+            product_id,
+            depot_id
+        FROM `productstock`
+        WHERE id = #{id}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+            id,
+            price,
+            storeNumber,
+            amount,
+            product_id,
+            depot_id
+        FROM `productstock`
+    </select>
+    <select id="selectByProductIdAndDepotId" resultType="cn.wolfcode.wms.domain.ProductStock">
+        SELECT
+            id,
+            price,
+            storeNumber,
+            amount,
+            product_id,
+            depot_id
+        FROM productstock
+        WHERE product_id = #{productId} AND depot_id = #{depotId}
+    </select>
+
+
+    <!--高级查询-->
+    <select id="queryForCount" resultType="int">
+        SELECT count(ps.id)
+        FROM productstock ps
+        JOIN depot d ON ps.depot_id = d.id
+        JOIN product pro ON ps.product_id = pro.id
+        <include refid="condition_sql"/>
+
+    </select>
+
+    <!--高级查询-->
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT
+        ps.id,
+        d.name d_name,
+        d.id d_id,
+        ps.storeNumber,
+        ps.price,
+        ps.amount,
+        pro.brand_id pro_brandId,
+        pro.name pro_name,
+        pro.brandName pro_brandName,
+        pro.id pro_id,
+        pro.sn pro_sn
+        FROM productstock ps
+        JOIN depot d ON ps.depot_id = d.id
+        JOIN product pro ON ps.product_id = pro.id
+        <include refid="condition_sql"/>
+        LIMIT #{beginIndex}, #{pageSize}
+    </select>
+
+    <sql id="condition_sql">
+        <where>
+            <if test="keyword!=null and keyword !=''">
+                and (pro.name like concat('%',#{keyword},'%') or pro.sn like concat('%',#{keyword},'%'))
+            </if>
+            <if test="depotId>0">
+                and d.id=#{depotId}
+            </if>
+            <if test="brandId>0">
+                and pro.brand_id=#{depotId}
+            </if>
+            <if test="maxNumber!=null and maxNumber !=''">
+                and storeNumber &lt;=#{maxNumber}
+            </if>
+        </where>
+    </sql>
+</mapper>

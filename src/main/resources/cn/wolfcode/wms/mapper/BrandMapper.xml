@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.wms.mapper.BrandMapper">
+  <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.Brand">
+    <id column="id" property="id" />
+    <result column="name" property="name" />
+    <result column="sn" property="sn" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from `brand`
+    where id = #{id}
+  </delete>
+  <insert id="insert" keyProperty="id" parameterType="cn.wolfcode.wms.domain.Brand" useGeneratedKeys="true">
+    insert into `brand` (name, sn)
+    values (#{name}, #{sn})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wms.domain.Brand">
+    update `brand`
+    set name = #{name},
+      sn = #{sn}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, name, sn
+    from `brand`
+    where id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, sn
+    from `brand`
+  </select>
+  <!--分页的条件-->
+    <select id="queryForCount" resultType="int">
+        select count(id) FROM brand;
+    </select>
+  <select id="queryForList" resultType="cn.wolfcode.wms.domain.Brand">
+     select id, name, sn
+    from `brand`
+    limit #{beginIndex},#{pageSize}
+  </select>
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wms.mapper.PermissionMapper">
+    <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.Permission">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="expression" property="expression"/>
+    </resultMap>
+    <insert id="insert">
+        INSERT INTO permission (name, expression) VALUES (#{name}, #{expression})
+    </insert>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        DELETE FROM `permission`
+        WHERE id = #{id}
+    </delete>
+
+    <update id="updateByPrimaryKey" parameterType="permission">
+        UPDATE `permission`
+        SET name       = #{name},
+            expression = #{expression}
+        WHERE id = #{id}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        SELECT
+            id,
+            name,
+            expression
+        FROM `permission`
+        WHERE id = #{id}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+            id,
+            name,
+            expression
+        FROM `permission`
+    </select>
+    <!--分页的sql语句-->
+    <select id="queryForCount" resultType="int">
+        SELECT count(id)
+        FROM permission
+    </select>
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT *
+        FROM permission
+        LIMIT #{beginIndex}, #{pageSize}
+    </select>
+    <select id="selectAllExperssion" resultType="string">
+        SELECT expression
+        FROM permission
+    </select>
+
+    <select id="selectPermissionByRoleId" resultType="permission">
+        SELECT
+            p.id,
+            p.name,
+            p.expression
+        FROM permission p LEFT JOIN role_permission rp ON p.id = rp.permission_id
+        WHERE role_id = #{roleId}
+    </select>
+</mapper>

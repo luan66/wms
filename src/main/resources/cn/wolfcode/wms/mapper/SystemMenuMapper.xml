@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wms.mapper.SystemMenuMapper">
+    <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.SystemMenu">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="url" property="url"/>
+        <result column="sn" property="sn"/>
+        <association property="parent" javaType="SystemMenu" column="parent_id"
+                     select="cn.wolfcode.wms.mapper.SystemMenuMapper.selectByPrimaryKey"
+        />
+    </resultMap>
+    <!--<resultMap id="BaseSingleResultMap" type="cn.wolfcode.wms.domain.SystemMenu">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="url" property="url"/>
+        <result column="sn" property="sn"/>
+        <association property="parent" javaType="SystemMenu" column="parent_id"
+        select="cn.wolfcode.wms.mapper.SystemMenuMapper.selectPrentMenubyChildId.selectByPrimaryKey"
+        />
+
+
+    </resultMap>-->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from `systemmenu`
+    where id = #{id}
+  </delete>
+    <insert id="insert" parameterType="cn.wolfcode.wms.domain.SystemMenu" useGeneratedKeys="true" keyProperty="id">
+    insert into `systemmenu` (name, url, sn, parent_id)
+    values (#{name}, #{url}, #{sn}, #{parent.id})
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wms.domain.SystemMenu">
+    update `systemmenu`
+    set name = #{name},
+      url = #{url},
+      sn = #{sn},
+      parent_id = #{parent.id}
+    where id = #{id}
+  </update>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select id, name, url, sn, parent_id
+    from `systemmenu`
+    where id = #{id}
+  </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, url, sn, parent_id
+    from `systemmenu`
+  </select>
+    <!--分页条件,未完待续-->
+    <select id="queryForCount" resultType="int">
+        SELECT COUNT(id) FROM systemmenu child
+        <include refid="baseSql"></include>
+    </select>
+    <select id="queryForList" resultMap="BaseResultMap">
+        select id, name, url, sn,parent_id
+        from `systemmenu`
+        <include refid="baseSql"></include>
+        limit #{beginIndex},#{pageSize}
+    </select>
+    <!--根据角色查询对应的菜单-->
+    <select id="selectMenuByRoleId" resultType="cn.wolfcode.wms.domain.SystemMenu">
+        SELECT sm.* FROM systemmenu sm JOIN role_menu rm ON sm.id=rm.menu_id WHERE rm.role_id=#{id}
+    </select>
+    <!--通过父类的sn去查询该父菜单的子菜单 {id: 114, pId: 1, name: "系统菜单管理", controller: "/systemMenu/query.do"}-->
+    <select id="selectMenuByParentSn" resultType="map">
+        SELECT DISTINCT child.id id,child.parent_id pId,child.name name,child.url controller
+        FROM systemmenu child LEFT JOIN systemmenu parent ON child.parent_id=parent.id
+        LEFT JOIN role_menu rm ON rm.menu_id=parent.id
+        LEFT JOIN employee_role er on er.role_id=rm.role_id
+        where parent.sn=#{parentSn}
+        <if test="employeeId!=null">
+            AND er.employee_id=#{employeeId};
+        </if>
+    </select>
+    <!--抽取共同的sql-->
+    <sql id="baseSql">
+        <where>
+            <if test="parentId==null">
+                AND parent_id IS NULL
+            </if>
+            <if test="parentId!=null">
+                AND parent_id=#{parentId}
+            </if>
+        </where>
+
+    </sql>
+</mapper>

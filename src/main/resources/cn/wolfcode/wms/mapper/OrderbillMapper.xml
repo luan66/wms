@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wms.mapper.OrderBillMapper">
+    <resultMap id="BaseResultMap" type="OrderBill">
+        <id column="id" property="id"/>
+        <result column="sn" property="sn"/>
+        <result column="vdate" property="vdate"></result>
+        <result column="status" property="status"/>
+        <result column="totalAmount" property="totalAmount"/>
+        <result column="totalNumber" property="totalNumber"/>
+        <result column="auditTime" property="auditTime"></result>
+        <result column="inputTime" property="inputTime"></result>
+        <association property="inputUser" javaType="Employee">
+            <id property="id" column="input_id"></id>
+            <result property="name" column="input_name"></result>
+        </association>
+        <association property="auditor" javaType="Employee">
+            <id property="id" column="auditor_id"></id>
+            <result property="name" column="auditor_name"></result>
+        </association>
+        <association property="supplier" javaType="Supplier">
+            <id property="id" column="s_id"></id>
+            <result property="name" column="s_name"></result>
+        </association>
+        <!--通过订单的id查询订单的明细-->
+        <collection property="items" column="id" ofType="OrderBillItem"
+                    select="cn.wolfcode.wms.mapper.OrderBillItemMapper.selectItemsByBillId"
+        ></collection>
+    </resultMap>
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM `orderbill`
+        WHERE id = #{id}
+    </delete>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `orderbill` (sn, vdate, status, totalAmount, totalNumber, auditTime,
+                                 inputTime, inputUser_id, auditor_id, supplier_id)
+        VALUES (#{sn}, #{vdate}, #{status}, #{totalAmount}, #{totalNumber}, #{auditTime},
+                #{inputTime}, #{inputUser.id}, #{auditor.id}, #{supplier.id})
+    </insert>
+    <update id="updateByPrimaryKey">
+        UPDATE `orderbill`
+        SET sn          = #{sn},
+            vdate       = #{vdate},
+            status      = #{status},
+            totalAmount = #{totalAmount},
+            totalNumber = #{totalNumber},
+            auditTime   = #{auditTime},
+            auditor_id  = #{auditor.id},
+            supplier_id = #{supplier.id}
+        WHERE id = #{id}
+    </update>
+    <!--审核更新状态-->
+    <update id="updateStatus">
+        UPDATE orderbill
+        SET status = #{status}, auditor_id = #{auditor.id}, auditTime = #{auditTime}
+
+        WHERE id = #{id}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT
+            bill.id,
+            bill.sn,
+            bill.vdate,
+            bill.status,
+            bill.totalAmount,
+            bill.totalNumber,
+            bill.auditTime,
+            bill.inputTime,
+            inputUser.id input_id,inputUser.name input_name,
+            auditor.id auditor_id,auditor.name auditor_name,
+            s.id s_name ,s.name s_name
+        FROM `orderbill` bill LEFT JOIN employee inputUser ON bill.inputUser_id=inputUser.id
+        LEFT JOIN employee auditor ON auditor.id=bill.auditor_id
+        LEFT JOIN supplier s ON s.id=bill.supplier_id
+        WHERE bill.id = #{id}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+            id,
+            sn,
+            vdate,
+            status,
+            totalAmount,
+            totalNumber,
+            auditTime,
+            inputTime,
+            inputUser_id,
+            auditor_id,
+            supplier_id
+        FROM `orderbill`
+    </select>
+    <!--分页查询-->
+    <sql id="baseSql">
+        <where>
+            <if test="beginTime!=null">
+                and vdate >=#{beginTime}
+            </if>
+            <if test="endTime!=null">
+                and vdate&lt;=#{endTime}
+            </if>
+            <if test="suplierId>0">
+                and s.id=#{suplierId}
+            </if>
+            <if test="status>=0">
+                and status=#{status}
+            </if>
+        </where>
+    </sql>
+    <select id="queryForCount" resultType="int">
+        SELECT count(bill.id)
+        FROM `orderbill` bill LEFT JOIN employee input ON bill.inputUser_id = input.id
+        LEFT JOIN employee auditor ON bill.auditor_id = auditor.id
+        LEFT JOIN supplier s ON s.id = bill.supplier_id
+        <include refid="baseSql"></include>
+    </select>
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT
+        bill.id,
+        bill.sn,
+        bill.vdate,
+        bill.status,
+        bill.totalAmount,
+        bill.totalNumber,
+        bill.auditTime,
+        bill.inputTime,
+        input.id input_id,
+        input.name input_name,
+        auditor.id auditor_id,
+        auditor.name auditor_name,
+        s.id s_id,
+        s.name s_name
+        FROM `orderbill` bill LEFT JOIN employee input ON bill.inputUser_id = input.id
+        LEFT JOIN employee auditor ON bill.auditor_id = auditor.id
+        LEFT JOIN supplier s ON s.id = bill.supplier_id
+        <include refid="baseSql"></include>
+        LIMIT #{beginIndex}, #{pageSize}
+    </select>
+
+</mapper>

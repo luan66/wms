@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.wms.mapper.RoleMapper">
+  <!--内联方式-->
+  <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.Role">
+    <id column="id" property="id" />
+    <result column="name" property="name" />
+    <result column="sn" property="sn" />
+  </resultMap>
+  <!--使用额外的sql方式-->
+  <resultMap id="BaseSingleMap" type="cn.wolfcode.wms.domain.Role">
+    <id column="id" property="id" />
+    <result column="name" property="name" />
+    <result column="sn" property="sn" />
+    <collection property="permissions" column="id"
+    select="cn.wolfcode.wms.mapper.PermissionMapper.selectPermissionByRoleId" ofType="Permission"
+    />
+    <collection property="menus" column="id" ofType="SystemMenu"
+                select="cn.wolfcode.wms.mapper.SystemMenuMapper.selectMenuByRoleId"/>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from `role`
+    where id = #{id}
+  </delete>
+    <!--打破关系的sql-->
+  <delete id="deleteRolePermissionRelation">
+    DELETE FROM role_permission WHERE role_id=#{roleId}
+
+  </delete>
+  <!--打破角色和菜单的关系-->
+    <delete id="deleteRoleMenuRelation">
+        DELETE FROM role_menu WHERE role_id=#{id}
+    </delete>
+  <!--维护角色和菜单的关系-->
+  <insert id="insertRoleMenuRelation">
+        INSERT INTO role_menu (menu_id,role_id) VALUES (#{menuId},#{roleId})
+  </insert>
+    <insert id="insert" keyProperty="id" parameterType="cn.wolfcode.wms.domain.Role" useGeneratedKeys="true">
+    insert into `role` (name, sn)
+    values (#{name}, #{sn})
+  </insert>
+  <!--维护关系的sql-->
+  <insert id="insertRolePermissionRelation">
+    INSERT INTO role_permission (permission_id,role_id) VALUES (#{permissionId},#{roleId})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wms.domain.Role">
+    update `role`
+    set name = #{name},
+      sn = #{sn}
+    where id = #{id}
+  </update>
+  <!--查出角色所对应的权限,使用额外sql的方式-->
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseSingleMap">
+    select id, name, sn
+    from `role`
+    where id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, sn
+    from `role`
+  </select>
+    <select id="queryForList" resultType="cn.wolfcode.wms.domain.Role">
+        select id, name, sn  from `role`
+        limit #{beginIndex},#{pageSize}
+    </select>
+  <select id="queryForCount" resultType="int">
+      SELECT count(*) FROM role
+  </select>
+  <select id="selectRoleByEmpId" resultType="cn.wolfcode.wms.domain.Role">
+      SELECT  r.id,r.name,r.sn FROM role r JOIN employee_role er ON r.id=er.role_id WHERE er.employee_id=#{EmpId}
+  </select>
+</mapper>

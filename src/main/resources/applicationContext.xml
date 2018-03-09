@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!-- 开启IOC扫描器 -->
+    <context:component-scan base-package="cn.wolfcode.wms"/>
+    <!--开启DI扫描 -->
+    <context:annotation-config/>
+
+    <!-- 引如配置文件的数据 -->
+    <context:property-placeholder location="classpath:db.properties"/>
+    <!-- 配置druid的连接池 -->
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <property name="driverClassName" value="${jdbc.driverClassName}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+       <!-- <property name="filters" value="stat,config" />
+        <property name="connectionProperties" value="config.decrypt=true" />-->
+    </bean>
+    <!-- 配置sqlSessionFactory 
+        回忆:通过sqlsessionfactory得到sqlsession
+        sqlsessionFactory.getSession()
+        sqlsession.getMapper(传入一个需要被代理的接口)
+    -->
+
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--主要配置mybatis依赖的东西  -->
+        <!-- 配置数据源 -->
+        <property name="dataSource" ref="dataSource"></property>
+        <!-- 配置个性化设置,也就是引入mybatis-config.xml配置 -->
+        <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+        <!-- 配置mybatis-config.xml中的<mapping> -->
+        <property name="mapperLocations" value="classpath:cn/wolfcode/wms/mapper/*Mapper.xml"></property>
+        <!-- 配置mybatis-config.xml中的别名 这里配置的别名,默认是类名首字母小写 -->
+        <property name="typeAliasesPackage" value="cn.wolfcode.wms.domain"></property>
+    </bean>
+    <!-- 配置事务,因为事务是所有共有的,所以可以配置到总配置文件中 what 需要做什么增强-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <!-- where 在哪个类的哪个方法做增强 -->
+
+    <aop:config>
+        <!--配置切点  -->
+        <aop:pointcut expression="execution(* cn.wolfcode.wms.service.*Service.*(..))" id="pc"/>
+        <!-- 配置切面,让事务管理器织入被代理的对象的方法中 -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pc"/>
+    </aop:config>
+    <!-- 配置的增强  transaction-manager需要谁来管理我们这个增强点,-->
+    <tx:advice transaction-manager="txManager" id="txAdvice">
+        <tx:attributes>
+            <!-- 配置查询操作不需要做事务增强 -->
+            <tx:method name="*list" read-only="true"/>
+            <tx:method name="*get" read-only="true"/>
+            <tx:method name="*query" read-only="true"/>
+            <tx:method name="*select" read-only="true"/>
+            <!-- 配置需要做增强的方法 ,最后配置事务的传播规则-->
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="cn.wolfcode.wms.mapper"/>
+    </bean>
+
+
+</beans>

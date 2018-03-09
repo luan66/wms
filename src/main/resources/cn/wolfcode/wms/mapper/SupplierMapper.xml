@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wms.mapper.SupplierMapper">
+    <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.Supplier">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="phone" property="phone"/>
+        <result column="address" property="address"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from `supplier`
+    where id = #{id}
+  </delete>
+    <insert id="insert" parameterType="cn.wolfcode.wms.domain.Supplier" useGeneratedKeys="true" keyProperty="id">
+    insert into `supplier` (name, phone, address)
+    values (#{name}, #{phone}, #{address})
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wms.domain.Supplier">
+    update `supplier`
+    set name = #{name},
+      phone = #{phone},
+      address = #{address}
+    where id = #{id}
+  </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+    select id, name, phone, address
+    from `supplier`
+    where id = #{id}
+  </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, phone, address
+    from `supplier`
+  </select>
+    <!--分页的条件-->
+    <select id="queryForCount" resultType="int">
+        SELECT count(id) FROM  supplier
+    </select>
+    <select id="queryForList" resultMap="BaseResultMap">
+      select id, name, phone, address
+      from `supplier`
+      limit #{beginIndex},#{pageSize}
+
+</select>
+</mapper>

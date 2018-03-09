@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop.xsd
+    http://www.springframework.org/schema/mvc 
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+	<!-- 配置视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- 配置视图的前缀和后缀 -->
+		<property name="prefix" value="/WEB-INF/views/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	
+	<!-- 第一步初始化所有的控制器映射,上下文对象,控制的适配器,以及我们的控制对象 -->
+	<mvc:annotation-driven/>
+	
+	<!-- 由于开启服务器是启动tomcat,tomcat又会先加载我们的mvc.xml文件,所以这里我们需要从mvc.xml中引入spring的xml配置 -->
+	<import resource="classpath:applicationContext.xml"/>
+	<!--springmvc异常的处理-->
+	<!--<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		&lt;!&ndash; 定义默认的异常处理页面，当该异常类型的注册时使用 &ndash;&gt;
+		<property name="defaultErrorView" value="common/error"/>
+		&lt;!&ndash; 定义异常处理页面用来获取异常信息的变量名，默认名为exception &ndash;&gt;
+		<property name="exceptionAttribute" value="ex"/>
+		&lt;!&ndash; 定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值 &ndash;&gt;
+		<property name="exceptionMappings">
+			<value>
+				com._520it.wms.web.exception.SecurityException=common/nopermission
+				&lt;!&ndash; 这里还可以继续扩展不同异常类型的异常处理 &ndash;&gt;
+			</value>
+		</property>
+	</bean>-->
+	<!--配置拦截器-->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/login.do"></mvc:exclude-mapping>
+			<bean class="cn.wolfcode.wms.web.interceptor.LoginInterceptor"></bean>
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/login.do"></mvc:exclude-mapping>
+			<bean class="cn.wolfcode.wms.web.interceptor.SecurityInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	<!-- 多部分文件上传,文件上传的配置 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="104857600" />
+		<property name="maxInMemorySize" value="4096" />
+		<property name="defaultEncoding" value="UTF-8"></property>
+	</bean>
+</beans>

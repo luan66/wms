@@ -1,0 +1,36 @@
+@charset "UTF-8";
+
+* {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+html,body {
+	font: normal 15px "Microsoft YaHei";
+}
+
+#login_area {
+	width: 100%;
+	height: 433px;
+	position: absolute;
+}
+
+#login_box {
+	width: 812px;
+	height: 408px;
+	background: url('../../images/error/login.png') 0px 0px no-repeat;
+	position: relative;
+}
+
+#login_form {
+	width: 370px;
+	height: 320px;
+	position: absolute;
+	top: 10px;
+	right: 0px;
+}
+
+#login_form h2{font-size: 36px;margin:40px 40px;}
+#login_form span{font-size: 14px;margin:15px 40px;display: block;}
+#login_form > .error{color: red;}

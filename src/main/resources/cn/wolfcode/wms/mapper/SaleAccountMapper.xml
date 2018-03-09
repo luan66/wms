@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wms.mapper.SaleAccountMapper">
+    <!--<resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.SaleAccount" >
+      <id column="id" property="id" jdbcType="BIGINT" />
+      <result column="vdate" property="vdate" jdbcType="TIMESTAMP" />
+      <result column="number" property="number" jdbcType="DECIMAL" />
+      <result column="costPrice" property="costprice" jdbcType="DECIMAL" />
+      <result column="costAmount" property="costamount" jdbcType="DECIMAL" />
+      <result column="salePrice" property="saleprice" jdbcType="DECIMAL" />
+      <result column="saleAmount" property="saleamount" jdbcType="DECIMAL" />
+      <result column="product_id" property="productId" jdbcType="BIGINT" />
+      <result column="saleman_id" property="salemanId" jdbcType="BIGINT" />
+      <result column="client_id" property="clientId" jdbcType="BIGINT" />
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+      delete from `saleaccount`
+      where id = #{id,jdbcType=BIGINT}
+    </delete>-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `saleaccount` (vdate, number, costPrice,
+                                   costAmount, salePrice, saleAmount,
+                                   product_id, saleman_id, client_id
+        )
+        VALUES (#{vdate,jdbcType=TIMESTAMP}, #{number,jdbcType=DECIMAL}, #{costPrice,jdbcType=DECIMAL},
+                #{costAmount,jdbcType=DECIMAL}, #{salePrice,jdbcType=DECIMAL}, #{saleAmount,jdbcType=DECIMAL},
+                #{product.id,jdbcType=BIGINT}, #{saleMan.id,jdbcType=BIGINT}, #{client.id,jdbcType=BIGINT}
+        )
+    </insert>
+    <!-- <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wms.domain.SaleAccount" >
+       update `saleaccount`
+       set vdate = #{vdate,jdbcType=TIMESTAMP},
+         number = #{number,jdbcType=DECIMAL},
+         costPrice = #{costprice,jdbcType=DECIMAL},
+         costAmount = #{costamount,jdbcType=DECIMAL},
+         salePrice = #{saleprice,jdbcType=DECIMAL},
+         saleAmount = #{saleamount,jdbcType=DECIMAL},
+         product_id = #{productId,jdbcType=BIGINT},
+         saleman_id = #{salemanId,jdbcType=BIGINT},
+         client_id = #{clientId,jdbcType=BIGINT}
+       where id = #{id,jdbcType=BIGINT}
+     </update>
+     <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+       select id, vdate, number, costPrice, costAmount, salePrice, saleAmount, product_id,
+       saleman_id, client_id
+       from `saleaccount`
+       where id = #{id,jdbcType=BIGINT}
+     </select>
+     <select id="selectAll" resultMap="BaseResultMap" >
+       select id, vdate, number, costPrice, costAmount, salePrice, saleAmount, product_id,
+       saleman_id, client_id
+       from `saleaccount`
+     </select>-->
+</mapper>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wms.mapper.StockOutComeBillItemMapper">
+    <resultMap id="BaseResultMap" type="StockOutComeBillItem">
+        <id column="id" property="id"/>
+        <result column="salePrice" property="salePrice"/>
+        <result column="number" property="number"/>
+        <result column="amount" property="amount"/>
+        <result column="remark" property="remark"/>
+        <association property="product" javaType="Product">
+            <id column="p_id" property="id"></id>
+            <result column="p_name" property="name"></result>
+            <result column="p_brandName" property="brandName"></result>
+        </association>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        DELETE FROM `stockOutComeBillItem`
+        WHERE id = #{id}
+    </delete>
+    <!--根据订单的id,删除对应的订单的明细-->
+    <delete id="deleteByBillId">
+        DELETE FROM stockOutComeBillItem
+        WHERE bill_id = #{billId}
+    </delete>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `stockOutComeBillItem` (salePrice, number, amount, remark, product_id, bill_id)
+        VALUES (#{salePrice}, #{number}, #{amount}, #{remark}, #{product.id}, #{billId})
+    </insert>
+    <update id="updateByPrimaryKey">
+        UPDATE `stockOutComeBillItem`
+        SET salePrice  = #{salePrice},
+            number     = #{number},
+            amount     = #{amount},
+            remark     = #{remark},
+            product_id = #{product.id}
+        WHERE bill_id = #{billId}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        select id, salePrice, number, amount, remark, product_id, bill_id
+        from `stockOutComeBillItem`
+        where id = #{id}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        select id, salePrice, number, amount, remark, product_id, bill_id
+        from `stockOutComeBillItem`
+    </select>
+
+    <!--通过订单的id查询所对应的订单明细和商品的品牌-->
+    <select id="selectItemsByBillId" resultMap="BaseResultMap">
+        select  item.id,item.salePrice,item.number,item.amount,item.remark,p.id p_id,p.name p_name,p.brandName p_brandName
+        FROM stockOutComeBillItem item
+        LEFT JOIN product p ON item.product_id=p.id
+        WHERE item.bill_id=#{billId}
+    </select>
+</mapper>

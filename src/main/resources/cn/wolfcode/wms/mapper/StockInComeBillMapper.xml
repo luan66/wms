@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.wolfcode.wms.mapper.StockInComeBillMapper">
+    <resultMap id="BaseResultMap" type="StockInComeBill">
+        <id column="id" property="id"/>
+        <result column="sn" property="sn"/>
+        <result column="vdate" property="vdate"></result>
+        <result column="status" property="status"/>
+        <result column="totalAmount" property="totalAmount"/>
+        <result column="totalNumber" property="totalNumber"/>
+        <result column="auditTime" property="auditTime"></result>
+        <result column="inputTime" property="inputTime"></result>
+        <association property="inputUser" javaType="Employee">
+            <id property="id" column="input_id"></id>
+            <result property="name" column="input_name"></result>
+        </association>
+        <association property="auditor" javaType="Employee">
+            <id property="id" column="auditor_id"></id>
+            <result property="name" column="auditor_name"></result>
+        </association>
+        <association property="depot" javaType="Depot">
+            <id property="id" column="d_id"></id>
+            <result property="name" column="d_name"></result>
+        </association>
+        <!--通过订单的id查询订单的明细-->
+        <collection property="items" column="id" ofType="StockInComeBillItem"
+                    select="cn.wolfcode.wms.mapper.StockInComeBillItemMapper.selectItemsByBillId"
+        ></collection>
+    </resultMap>
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM `stockInComeBill`
+        WHERE id = #{id}
+    </delete>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `stockInComeBill` (sn, vdate, status, totalAmount, totalNumber, auditTime,
+                                 inputTime, inputUser_id, auditor_id, depot_id)
+        VALUES (#{sn}, #{vdate}, #{status}, #{totalAmount}, #{totalNumber}, #{auditTime},
+                #{inputTime}, #{inputUser.id}, #{auditor.id}, #{depot.id})
+    </insert>
+    <update id="updateByPrimaryKey">
+        UPDATE `stockInComeBill`
+        SET sn          = #{sn},
+            vdate       = #{vdate},
+            status      = #{status},
+            totalAmount = #{totalAmount},
+            totalNumber = #{totalNumber},
+            auditTime   = #{auditTime},
+            auditor_id  = #{auditor.id},
+            depot_id = #{depot.id}
+        WHERE id = #{id}
+    </update>
+    <!--审核更新状态-->
+    <update id="updateStatus">
+        UPDATE stockInComeBill
+        SET status = #{status}, auditor_id = #{auditor.id}, auditTime = #{auditTime}
+
+        WHERE id = #{id}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        SELECT
+            bill.id,
+            bill.sn,
+            bill.vdate,
+            bill.status,
+            bill.totalAmount,
+            bill.totalNumber,
+            bill.auditTime,
+            bill.inputTime,
+            inputUser.id input_id,inputUser.name input_name,
+            auditor.id auditor_id,auditor.name auditor_name,
+            d.id d_id ,d.name d_name
+        FROM `stockInComeBill` bill LEFT JOIN employee inputUser ON bill.inputUser_id=inputUser.id
+        LEFT JOIN employee auditor ON auditor.id=bill.auditor_id
+        LEFT JOIN depot d ON d.id=bill.depot_id
+        WHERE bill.id = #{id}
+    </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+            id,
+            sn,
+            vdate,
+            status,
+            totalAmount,
+            totalNumber,
+            auditTime,
+            inputTime,
+            inputUser_id,
+            auditor_id,
+            depot_id
+        FROM `stockInComeBill`
+    </select>
+    <!--分页查询-->
+    <sql id="baseSql">
+        <where>
+            <if test="beginTime!=null">
+                and vdate >=#{beginTime}
+            </if>
+            <if test="endTime!=null">
+                and vdate&lt;=#{endTime}
+            </if>
+            <if test="depotId>0">
+                and d.id=#{depotId}
+            </if>
+            <if test="status>=0">
+                and status=#{status}
+            </if>
+        </where>
+    </sql>
+    <select id="queryForCount" resultType="int">
+        SELECT count(bill.id)
+        FROM `stockInComeBill` bill LEFT JOIN employee input ON bill.inputUser_id = input.id
+        LEFT JOIN employee auditor ON bill.auditor_id = auditor.id
+        LEFT JOIN depot d ON d.id = bill.depot_id
+        <include refid="baseSql"></include>
+    </select>
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT
+        bill.id,
+        bill.sn,
+        bill.vdate,
+        bill.status,
+        bill.totalAmount,
+        bill.totalNumber,
+        bill.auditTime,
+        bill.inputTime,
+        input.id input_id,
+        input.name input_name,
+        auditor.id auditor_id,
+        auditor.name auditor_name,
+        d.id d_id,
+        d.name d_name
+        FROM `stockInComeBill` bill LEFT JOIN employee input ON bill.inputUser_id = input.id
+        LEFT JOIN employee auditor ON bill.auditor_id = auditor.id
+        LEFT JOIN depot d ON d.id = bill.depot_id
+        <include refid="baseSql"></include>
+        LIMIT #{beginIndex}, #{pageSize}
+    </select>
+
+</mapper>

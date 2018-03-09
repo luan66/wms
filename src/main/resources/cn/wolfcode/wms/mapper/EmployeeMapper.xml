@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.wms.mapper.EmployeeMapper">
+
+    <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.Employee">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="password" property="password"/>
+        <result column="email" property="email"/>
+        <result column="age" property="age"/>
+        <result column="admin" property="admin"/>
+        <!--使用内联的方式查询-->
+        <association javaType="Department" property="dept">
+            <id column="d_id" property="id"/>
+            <result column="d_name" property="name"/>
+            <result column="d_sn" property="sn"/>
+        </association>
+        <!--使用额外sql的方式去查-->
+        <collection property="roles" ofType="Role" column="id"
+                    select="cn.wolfcode.wms.mapper.RoleMapper.selectRoleByEmpId"></collection>
+    </resultMap>
+    <delete id="deleteByPrimaryKey">
+    delete from `employee`
+    where id = #{id}
+  </delete>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+        insert into `employee` (name, password, email, age,
+        <if test="admin!=null">
+            admin,
+        </if>
+        dept_id)
+        values (#{name}, #{password}, #{email}, #{age},
+        <if test="admin!=null">
+            #{admin},
+        </if>
+        #{dept.id})
+    </insert>
+    <!--维护关系-->
+    <insert id="insertEmployeeRoleRelationRelation">
+    INSERT INTO employee_role (role_id,employee_id) VALUES (#{roleId},#{empId})
+  </insert>
+    <!--打破关系-->
+    <delete id="deleteEmployeeRoleRelation">
+    DELETE FROM employee_role WHERE employee_id=#{employeeId}
+  </delete>
+    <!--批量删除员工-->
+    <delete id="bachDelete">
+        DELETE FROM employee WHERE id IN
+        <foreach collection="array" close=")" open="(" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+    <!--批量删除打破关系-->
+    <delete id="bachDeleteEmployeeRoleRelation">
+        DELETE FROM employee_role WHERE employee_id IN
+        <foreach collection="array" close=")" open="(" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+    <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wms.domain.Employee">
+        update `employee`
+        set name = #{name},
+        <if test="password!=null and password!=''">
+            password = #{password},
+        </if>
+        email = #{email},
+        age = #{age},
+        admin = #{admin},
+        dept_id = #{dept.id}
+        where id = #{id}
+    </update>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select e.id, e.name, e.password, e.email, e.age, e.admin,d.id d_id,d.name d_name,d.sn d_sn
+    from `employee` e LEFT JOIN department d ON e.dept_id=d.id
+    where e.id = #{id}
+  </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+
+    select id, name, password, email, age, admin, dept_id
+    from `employee`
+  </select>
+    <select id="queryForCount" resultType="int">
+        SELECT count(e.id) from employee e
+        <include refid="baseSql"/>
+
+    </select>
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT e.id,e.name,e.password,e.email,e.age,e.admin,d.id d_id,d.name d_name, d.sn d_sn
+        FROM employee e LEFT join department d ON e.dept_id=d.id
+        <include refid="baseSql"/>
+        limit #{beginIndex},#{pageSize}
+    </select>
+    <!--校验登录-->
+    <select id="login" resultType="cn.wolfcode.wms.domain.Employee">
+    SELECT id,name, password, email, age,admin,dept_id FROM employee WHERE name=#{name} and password=#{password}
+  </select>
+    <!--通过员工的id查出所有的对应的权限-->
+    <select id="selectPermissionByEmpId" resultType="java.lang.String">
+      SELECT expression FROM permission WHERE id in(
+        SELECT permission_id FROM role_permission WHERE role_id IN (
+          SELECT role_id FROM employee_role WHERE employee_id=#{empId}
+        )
+      )
+  </select>
+    <!--basesql-->
+    <sql id="baseSql">
+        <where>
+            <if test="keyword!=null and keyword!=''">
+                AND (e.name LIKE concat('%',#{keyword},'%') or e.email like concat('%',#{keyword},'%'))
+            </if>
+            <if test="deptId!=null and deptId&gt;0">
+                and e.dept_id=#{deptId}
+            </if>
+        </where>
+    </sql>
+</mapper>

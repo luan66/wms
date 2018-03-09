@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.wms.mapper.ClientMapper">
+  <resultMap id="BaseResultMap" type="cn.wolfcode.wms.domain.Client">
+    <id column="id" property="id" />
+    <result column="name" property="name" />
+    <result column="sn" property="sn" />
+    <result column="phone" property="phone" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from `client`
+    where id = #{id}
+  </delete>
+  <insert id="insert" keyProperty="id" parameterType="cn.wolfcode.wms.domain.Client" useGeneratedKeys="true">
+    insert into `client` (name, sn, phone)
+    values (#{name}, #{sn}, #{phone})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.wolfcode.wms.domain.Client">
+    update `client`
+    set name = #{name},
+      sn = #{sn},
+      phone = #{phone}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, name, sn, phone
+    from `client`
+    where id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, sn, phone
+    from `client`
+  </select>
+    <select id="queryForCount" resultType="int">
+      SELECT COUNT(id) FROM client
+    </select>
+  <select id="queryForList" resultMap="BaseResultMap">
+       select id, name, sn, phone
+        from `client`
+        limit #{beginIndex},#{pageSize}
+  </select>
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.wms.mapper.ChartMapper">
+
+
+    <select id="order" resultType="java.util.Map">
+        SELECT
+        ${groupBy} groupByName,
+        SUM(obi.number) totalNumber,
+        SUM(obi.amount) totalAmount
+        FROM orderbill ob
+        JOIN employee e ON ob.inputUser_id = e.id
+        JOIN orderbillitem obi ON ob.id = obi.bill_id
+        JOIN product p ON p.id = obi.product_id
+        JOIN supplier s ON s.id = ob.supplier_id
+        <where>
+            <if test="beginTime != null">
+                and ob.vdate >= #{beginTime}
+            </if>
+            <if test="endTime != null">
+                and ob.vdate &lt;= #{endTime}
+            </if>
+            <if test="productName !=null and productName !=''">
+                and p.name LIKE concat('%',#{productName},'%')
+            </if>
+            <if test="supplierId > 0">
+                and s.id = #{supplierId}
+            </if>
+            <if test="brandId > 0">
+                and p.brand_id = #{brandId}
+            </if>
+        </where>
+        GROUP BY ${groupBy}
+
+    </select>
+
+    <select id="sale" resultType="java.util.Map">
+        SELECT
+        ${groupBy} groupByName,
+        SUM(sa.number) totalNumber,
+        SUM(sa.saleAmount) totalAmount,
+        sum(sa.saleAmount - sa.costAmount) grossProfit
+        FROM saleaccount sa
+        JOIN employee e ON sa.saleman_id=e.id
+        JOIN product p ON p.id = sa.product_id
+        JOIN  client c on c.id = sa.client_id
+        <where>
+            <if test="beginTime != null">
+               and sa.vdate >= #{beginTime}
+            </if>
+            <if test="endTime != null">
+               AND sa.vdate &lt;= #{endTime}
+            </if>
+            <if test="productName !=null and productName !=''">
+                and p.name LIKE concat('%',#{productName},'%')
+            </if>
+            <if test="clientId > 0">
+                and sa.client_id = #{clientId}
+            </if>
+            <if test="brandId > 0">
+                and p.brand_id = #{brandId}
+            </if>
+        </where>
+        GROUP BY ${groupBy}
+
+    </select>
+
+</mapper>
